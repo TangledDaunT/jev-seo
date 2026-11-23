@@ -30,15 +30,31 @@ YES, NO = 0.80, 0.20  # Noul decisive bands (Noul has no confidence field)
 
 
 def choice(instructions: str, options: dict) -> dict:
-    return {"type": "choice", "instructions": instructions, "criteria": options}
+    criteria = {}
+    for option, description in options.items():
+        if isinstance(description, dict):
+            parts = [str(value) for value in description.values() if value]
+            description = "; ".join(parts)
+        elif not isinstance(description, str):
+            description = str(description)
+        criteria[option] = description
+    return {"type": "choice", "instructions": instructions, "criteria": criteria}
 
 
 def noul(instructions: str, true: str, false: str) -> dict:
-    return {"type": "noul", "instructions": instructions, "criteria": {"true": true, "false": false}}
+    return {
+        "type": "noul",
+        "instructions": instructions,
+        "criteria": {
+            "true_description": true,
+            "false_description": false,
+        },
+    }
 
 
 def score(instructions: str, levels: list[str]) -> dict:
-    return {"type": "score", "instructions": instructions, "criteria": levels}
+    criteria = [str(level) for level in levels]
+    return {"type": "score", "instructions": instructions, "criteria": criteria}
 
 
 # ---------------------------------------------------------------- per page
