@@ -32,7 +32,7 @@ def context(vm: dict) -> dict:
         "act": jev.ACT,
         "yes": jev.YES,
         "no": jev.NO,
-        "sources": sorted({a["source"] for a in vm["actions"]} | {"https://docs.typesafe.ai/primitives", "https://docs.typesafe.ai/confidence", "https://developers.google.com/speed/docs/insights/v5/about"}),
+        "sources": sorted({a["source"] for a in vm["actions"]} | {"https://aistudio.google.com/docs/decisions-api", "https://developers.google.com/speed/docs/insights/v5/about"}),
     }
 
 

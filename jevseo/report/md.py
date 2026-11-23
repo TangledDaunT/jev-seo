@@ -65,7 +65,7 @@ def write_md(vm: dict, path: Path) -> Path:
     add(f"_Written by: {n['author']}._\n")
 
     add("## How this audit was made\n")
-    add("A source finds, code decides, Jev judges, Claude writes. Code crawls, counts and scores. Jev (TypeSafe's System One model) answers narrow typed questions about meaning, with probabilities. Missing data is shown as missing.\n")
+    add("A source finds, code decides, Jev judges, Claude writes. Code crawls, counts and scores. Gemini Decision 1 answers narrow typed questions about meaning, with probabilities. Missing data is shown as missing.\n")
     add("```mermaid\nflowchart LR\n  A[Crawl<br/>" + f"{vm['n_fetched']} URLs" + "] --> B[Rules<br/>" + f"{sum(1 for f in d['findings'] if f['origin'] == 'rule')} findings" + "] --> C[Jev judges<br/>" + f"{vm['n_judgments']} judgments" + "] --> D[PageSpeed<br/>" + f"{len(vm['perf_runs'])} runs" + "] --> E[Score and write<br/>" + f"{len(vm['actions'])} actions" + "]\n  style C fill:#d45bb6,color:#fff\n```\n")
 
     add("## Priority actions\n")

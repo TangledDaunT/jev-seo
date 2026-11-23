@@ -169,6 +169,35 @@ class JevValidationTests(unittest.TestCase):
         self.assertEqual(client.ledger["skipped_budget"], 1)
         self.assertEqual(client.ledger["requests"], 0)
 
+    def test_gemini_request_shape(self):
+        from unittest import mock
+
+        class Resp:
+            status_code = 200
+            headers = {}
+            text = ""
+
+            def json(self):
+                return {
+                    "answers": {"q": {"type": "noul", "noul": 0.9, "confidence": 0.9}},
+                    "usage": {"total_input_tokens": 42, "total_output_tokens": 0},
+                    "model": "gemini-decision-1",
+                }
+
+        client = jev.Jev(budget_usd=1.0, log=lambda *_: None)
+        client.key = "test-gemini-key"
+        with mock.patch("jevseo.jev.requests.post", return_value=Resp()) as post:
+            result = client.ask({"x": "y"}, {"q": jev.noul("x", "t", "f")})
+
+        self.assertEqual(result["q"]["band"], "yes")
+        self.assertEqual(client.ledger["input_tokens"], 42)
+        sent = post.call_args
+        self.assertEqual(sent.args[0], "https://generativelanguage.googleapis.com/v1beta/decisions")
+        self.assertEqual(sent.kwargs["headers"]["x-goog-api-key"], "test-gemini-key")
+        payload = json.loads(sent.kwargs["data"])
+        self.assertEqual(payload["model"], "gemini-decision-1")
+        self.assertEqual(json.loads(payload["input"]), {"x": "y"})
+
     def test_pair_shortlist(self):
         a = {"url": "a", "title": "Emergency plumber Leeds", "h1": ["Emergency plumber"], "text_hash": "1"}
         b = {"url": "b", "title": "Emergency plumber Leeds night", "h1": [], "text_hash": "2"}

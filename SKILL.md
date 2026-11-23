@@ -2,7 +2,7 @@
 name: jev-seo
 description: >
   Full live SEO audit of any website from its homepage URL, powered by Jev
-  (TypeSafe's System One model). Crawls the site live (robots.txt, sitemaps,
+  (Google Gemini Decision 1). Crawls the site live (robots.txt, sitemaps,
   internal links, JavaScript rendering when needed), runs 52 deterministic
   checks tied to Google Search Central, measures Core Web Vitals with
   PageSpeed Insights, asks Jev batched typed questions about every page
@@ -32,8 +32,8 @@ skill's base directory, for example `"<skill-dir>/bin/jevseo" doctor`.
    given, ask for it (one question). Accept a bare domain. Only public
    sites: the crawler refuses private and local addresses by design.
 2. **Preflight.** Run `bin/jevseo doctor`. It reports dependencies and
-   whether `TYPESAFE_API_KEY` and `PAGESPEED_API_KEY` exist (never their
-   values). Without the TypeSafe key, the audit still runs and marks the
+   whether `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and `PAGESPEED_API_KEY` exist (never their
+   values). Without a Gemini key, the audit still runs and marks the
    Jev sections as not assessed and the score as a partial audit; say so.
    Keys are read from the environment, then `$JEVSEO_ENV_FILE`, `./.env`,
    the repository's `.env` (template: `.env.example`), then
@@ -170,7 +170,5 @@ tracker; Summary counts update from it.
   flow and known limits.
 - [references/evaluation.md](references/evaluation.md): what has been
   measured about accuracy and repeatability.
-- For Jev API questions use the official docs at
-  https://docs.typesafe.ai (and a local Jev knowledge brain or agent if
-  one is installed). Re-check price and model alias before relying on
-  them (`GET https://api.typesafe.ai/v1/models`).
+- For Jev API questions use the official Gemini Decisions API docs at
+  https://aistudio.google.com/docs/decisions-api.

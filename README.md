@@ -6,9 +6,9 @@
 [![checks](https://github.com/AgriciDaniel/jev-seo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AgriciDaniel/jev-seo/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-666666?style=flat-square&labelColor=0b0b0b)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.10%2B-666666?style=flat-square&labelColor=0b0b0b)](pyproject.toml)
-[![jev](https://img.shields.io/badge/judged%20by-jev--1.13.0-d45bb6?style=flat-square&labelColor=0b0b0b)](https://docs.typesafe.ai/primitives)
+[![jev](https://img.shields.io/badge/judged%20by-gemini--decision--1-d45bb6?style=flat-square&labelColor=0b0b0b)](https://aistudio.google.com/docs/decisions-api)
 
-jev-seo is a **live SEO audit for any website, from one homepage URL**. It crawls the site, checks it against 52 rules tied to Google Search Central, measures Core Web Vitals, and asks [Jev](https://docs.typesafe.ai/primitives), TypeSafe's System One model, typed questions about every page. Code scores and ranks every fix, and you get a designed PDF, an Excel action tracker and a Markdown report, all built from the same data.
+jev-seo is a **live SEO audit for any website, from one homepage URL**. It crawls the site, checks it against 52 rules tied to Google Search Central, measures Core Web Vitals, and asks [Gemini Decision 1](https://aistudio.google.com/docs/decisions-api) typed questions about every page. Code scores and ranks every fix, and you get a designed PDF, an Excel action tracker and a Markdown report, all built from the same data.
 
 It runs as a Claude Code skill (`/jev-seo https://example.com`) or from the command line. The standard mode needs no SEO data subscription and costs about a cent in Jev per site. An optional `--full` mode adds rankings, keywords and backlinks from DataForSEO for about 0.30 USD.
 
@@ -67,7 +67,7 @@ git clone https://github.com/AgriciDaniel/jev-seo.git
 cd jev-seo
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env                           # add TYPESAFE_API_KEY (optional keys are listed inside)
+cp .env.example .env                           # add GEMINI_API_KEY (optional keys are listed inside)
 bin/jevseo doctor                              # dependencies and keys, never prints values
 bin/jevseo run https://example.com             # audit and render with an automatic summary
 ```
@@ -99,10 +99,10 @@ bin/jevseo rescore jev-seo-reports/<dir>                        # rebuild findin
 | Crawl, rules, scoring, charts, PDF, XLSX, MD | Your machine | Free |
 | JavaScript rendering for script-only pages | Local headless Chromium (Playwright, optional) | Free |
 | Core Web Vitals and Lighthouse | Google PageSpeed Insights API | Free |
-| Page, site and keyword judgments | TypeSafe Jev API | 0.042 USD per million input tokens; about 0.00015 USD per page |
+| Page, site and keyword judgments | Google Gemini Decisions API | Subject to the Gemini Developer API quota; decisions calls generate no text output tokens |
 | Rankings, keywords, competitors, backlinks, live SERPs, AI mentions (`--full`) | DataForSEO API | Reported per call; about 0.30 USD per site |
 
-Both paid APIs sit behind hard caps (`--jev-budget`, default 0.25 USD; `--dfs-budget`, default 1.00 USD) checked before every request, and every call is in the report's cost ledger. Keys come from the environment or a `.env` file (see [.env.example](.env.example)): `TYPESAFE_API_KEY`, optionally `PAGESPEED_API_KEY` (without it PageSpeed is often rate limited), and for `--full` `DATAFORSEO_USERNAME` and `DATAFORSEO_PASSWORD`. Without the TypeSafe key the audit still runs, marks the Jev sections as not assessed, and labels the score a partial audit.
+The optional DataForSEO API sits behind a hard cap (`--dfs-budget`, default 1.00 USD) checked before every request. Keys come from the environment or a `.env` file (see [.env.example](.env.example)): `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) for semantic judgments, optionally `PAGESPEED_API_KEY` (without it PageSpeed is often rate limited), and for `--full` `DATAFORSEO_USERNAME` and `DATAFORSEO_PASSWORD`. Without a Gemini key the audit still runs, marks the Jev sections as not assessed, and labels the score a partial audit.
 
 ## How far to trust it
 
@@ -151,4 +151,4 @@ Large sites are sampled at the page cap (60 by default) and the report says so. 
 
 ## License
 
-[MIT](LICENSE). The bundled fonts in `jevseo/fonts/` are Inter and JetBrains Mono under the SIL Open Font License (license texts alongside). Jev is a product of TypeSafe AI; DataForSEO and PageSpeed Insights are third-party services with their own terms.
+[MIT](LICENSE). The bundled fonts in `jevseo/fonts/` are Inter and JetBrains Mono under the SIL Open Font License (license texts alongside). Gemini Decisions, DataForSEO and PageSpeed Insights are third-party services with their own terms.

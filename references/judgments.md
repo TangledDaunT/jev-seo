@@ -1,7 +1,9 @@
 # Jev judgment registry
 
-All questions go to `POST https://api.typesafe.ai/v1/systemone` with
-`model: jev-latest` (resolved to `jev-1.13.0` on 2026-09-21). Question
+Current provider: all questions go to
+`POST https://generativelanguage.googleapis.com/v1beta/decisions` with
+`model: gemini-decision-1`. The historical measurements below used TypeSafe
+`jev-latest` (resolved to `jev-1.13.0` on 2026-09-21). Question
 definitions live in `jevseo/jev.py`; this file explains them.
 
 ## Design rules applied

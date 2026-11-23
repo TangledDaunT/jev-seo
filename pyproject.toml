@@ -5,7 +5,7 @@ description = "Live website SEO audit with typed Jev judgments and PDF, XLSX and
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Agrici Daniel" }]
-keywords = ["seo", "seo-audit", "jev", "typesafe", "claude-code", "dataforseo", "pagespeed"]
+keywords = ["seo", "seo-audit", "jev", "gemini", "claude-code", "dataforseo", "pagespeed"]
 requires-python = ">=3.10"
 dependencies = ["requests", "beautifulsoup4", "lxml", "matplotlib", "jinja2", "weasyprint", "openpyxl"]
 

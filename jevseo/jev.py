@@ -1,7 +1,8 @@
 """Jev judgments: narrow semantic questions over crawled evidence.
 
-POST https://api.typesafe.ai/v1/systemone with state, model and questions
-(docs.typesafe.ai/primitives). Independent questions over one state share a
+POST https://generativelanguage.googleapis.com/v1beta/decisions with shared
+input and typed questions (Gemini Decisions API). Independent questions over
+one input share a
 request. Code never asks Jev something it can see itself: a page without a
 meta description gets no meta-quality question. Answers are typed and keep
 their probabilities; code turns them into findings only in the decisive band.
@@ -18,10 +19,11 @@ import requests
 
 from jevseo.env import secret
 
-API = "https://api.typesafe.ai/v1/systemone"
-MODELS_API = "https://api.typesafe.ai/v1/models"
-MODEL = "jev-latest"
-USD_PER_MTOK = 0.042  # docs.typesafe.ai/models, retrieved 2026-09-20; re-check with the Jev brain staleness rule
+API = "https://generativelanguage.googleapis.com/v1beta/decisions"
+MODEL = "gemini-decision-1"
+# Gemini's Developer API free tier is request-limited rather than billed by
+# output tokens. Keep usage accounting accurate; do not invent a paid cost.
+USD_PER_MTOK = 0.0
 PAGE_TEXT_CHARS = 6000
 ACT = 0.80  # Choice and Score confidence at or above this is decisive
 YES, NO = 0.80, 0.20  # Noul decisive bands (Noul has no confidence field)
@@ -329,7 +331,7 @@ def keyword_batches(keywords: list[dict], pages: list[dict], site_ctx: dict, siz
 # ---------------------------------------------------------------- client
 class Jev:
     def __init__(self, budget_usd: float = 0.25, log=print):
-        self.key = secret("TYPESAFE_API_KEY")
+        self.key = secret("GEMINI_API_KEY") or secret("GOOGLE_API_KEY")
         self.budget = budget_usd
         self.log = log
         self.lock = threading.Lock()
@@ -343,9 +345,12 @@ class Jev:
         return round(self.ledger["input_tokens"] / 1e6 * USD_PER_MTOK, 6)
 
     def ask(self, state: dict, questions: dict) -> dict | None:
-        body = json.dumps({"state": state, "model": MODEL, "questions": questions})
+        body = json.dumps({"model": MODEL, "input": json.dumps(state), "questions": questions})
         est = len(body) // 3  # conservative token estimate for the budget reservation
         with self.lock:
+            if self.budget <= 0:
+                self.ledger["skipped_budget"] += 1
+                return None
             spent = (self.ledger["input_tokens"] + self.ledger["est_reserved_tokens"]) / 1e6 * USD_PER_MTOK
             if spent + est / 1e6 * USD_PER_MTOK > self.budget:
                 self.ledger["skipped_budget"] += 1
@@ -354,7 +359,12 @@ class Jev:
         try:
             for attempt in range(5):
                 try:
-                    r = requests.post(API, data=body, headers={"Authorization": f"Bearer {self.key}", "Content-Type": "application/json"}, timeout=90)
+                    r = requests.post(
+                        API,
+                        data=body,
+                        headers={"x-goog-api-key": self.key, "Content-Type": "application/json"},
+                        timeout=90,
+                    )
                 except requests.RequestException as err:
                     if attempt < 4:
                         time.sleep(2**attempt)
@@ -369,13 +379,19 @@ class Jev:
                 usage = data.get("usage") or {}
                 with self.lock:
                     self.ledger["requests"] += 1
-                    if isinstance(usage.get("input_tokens"), int):
-                        self.ledger["input_tokens"] += usage["input_tokens"]
+                    input_tokens = usage.get("total_input_tokens")
+                    if not isinstance(input_tokens, int):
+                        input_tokens = usage.get("input_tokens")
+                    if isinstance(input_tokens, int):
+                        self.ledger["input_tokens"] += input_tokens
                     else:
                         # Keep the budget cap honest when usage is missing: count the estimate.
                         self.ledger["input_tokens"] += est
                         self.ledger["usage_estimated"] = self.ledger.get("usage_estimated", 0) + 1
-                    self.ledger["output_tokens"] += usage.get("output_tokens") or 0
+                    output_tokens = usage.get("total_output_tokens")
+                    if not isinstance(output_tokens, int):
+                        output_tokens = usage.get("output_tokens")
+                    self.ledger["output_tokens"] += output_tokens or 0
                     self.ledger["model_returned"] = data.get("model")
                 answers = data.get("answers") or {}
                 missing = set(questions) - set(answers)
@@ -431,7 +447,7 @@ def judge(crawl: dict, pages: list[dict], budget_usd: float, log=print, dfs: dic
     jev = Jev(budget_usd, log)
     out = {"available": jev.available, "site": None, "pages": {}, "pairs": [], "ledger": jev.ledger, "questions": {}}
     if not jev.available:
-        log("TYPESAFE_API_KEY not found: Jev judgments skipped; semantic sections will be marked not assessed.")
+        log("GEMINI_API_KEY (or GOOGLE_API_KEY) not found: Jev judgments skipped; semantic sections will be marked not assessed.")
         return out
     home = next((p for p in pages if p["url"] == crawl["final_url"]), pages[0] if pages else None)
     if home is None:
